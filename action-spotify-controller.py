@@ -15,11 +15,15 @@ class Spotify(HermesSnipsApp):
 
     @intent('MasX:NextSong')
     def next_song(self, hermes, intent_message):
-        headers = {
-        "Authorization": "Bearer %s" % (self.config['secret']['oauth_key'])}
-        results = requests.post('https://api.spotify.com/v1/me/player/next', headers=headers).json
-        print(results)
-        hermes.publish_end_session(intent_message.session_id, results)
+        headers = {"Authorization": "Bearer %s" % (self.config['secret']['oauth_key'])}
+        result_status = requests.post('https://api.spotify.com/v1/me/player/next', headers=headers).status_code
+        if result_status == 200:
+            hermes.publish_end_session(intent_message.session_id, "Skipping this song")
+        elif result_status == 401:
+            pass  # TODO request new key
+        else:
+            print(result_status)
+            hermes.publish_end_session(intent_message.session_id, "Something went wrong, please check the logs.")
 
 
 if __name__ == "__main__":
